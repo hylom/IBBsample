@@ -6,21 +6,41 @@
 //  Copyright (c) 2014年 Hiromichi Matsushima. All rights reserved.
 //
 
-/*
- * iRig BlueBoard's UUID is 755F479F-1284-40FB-BFB9-5DFE9DD7C2D3
- */
-
 #import "IBBAppDelegate.h"
+
+/* Device UUID */
+static NSString *const kIbbDeviceUUID      = @"755F479F-1284-40FB-BFB9-5DFE9DD7C2D3";
+
+/* service UUID */
+static NSString *const kIbbServiceUUID     = @"6B872736-F93E-4176-B3B1-143636CABB00";
+
+/* characteristic UUIDs */
+static NSString *const kSwitchesUUID       = @"6B872736-F93E-4176-B3B1-143636CABB01";
+static NSString *const kLedsUUID           = @"6B872736-F93E-4176-B3B1-143636CABB02";
+static NSString *const kExtSwitchesUUID    = @"6B872736-F93E-4176-B3B1-143636CABB03";
+static NSString *const kConnParametersUUID = @"6B872736-F93E-4176-B3B1-143636CABB04";
+static NSString *const kBacklightUUID      = @"6B872736-F93E-4176-B3B1-143636CABB05";
+static NSString *const kLedsStatusUUID     = @"6B872736-F93E-4176-B3B1-143636CABB06";
+static NSString *const kSynchUUID          = @"6B872736-F93E-4176-B3B1-143636CABB07";
+static NSString *const kRenameUUID         = @"6B872736-F93E-4176-B3B1-143636CABB08";
+static NSString *const kValidationUUID     = @"6B872736-F93E-4176-B3B1-143636CABB09";
+
+/* Encryption key: 0xf263eeb6a7120550b157216a2efac39c7db776bc */
+
 
 @implementation IBBAppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+    //
+    self.characteristicsStrings = @[kSwitchesUUID, kLedsUUID, kExtSwitchesUUID, kConnParametersUUID,
+                                   kBacklightUUID, kLedsStatusUUID, kSynchUUID, kRenameUUID, kValidationUUID];
+                                   
     // Insert code here to initialize your application
     self.cbManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
 
     // iRig BuleBoard's UUID
-    self.cbIbbUUID = [CBUUID UUIDWithString: @"755F479F-1284-40FB-BFB9-5DFE9DD7C2D3"];
+    self.cbIbbUUID = [CBUUID UUIDWithString: kIbbDeviceUUID];
     
     self.devices = [[NSMutableArray alloc] init];
     [self.deviceListController setContent:self.devices];
@@ -75,21 +95,17 @@
     self.cbPeripheral = peripheral;
     
     //[peripheral discoverServices:nil];
-    //CBUUID *uuid = [CBUUID UUIDWithString: @"180a"];
-    CBUUID *uuid = [CBUUID UUIDWithString: @"6B872736-F93E-4176-B3B1-143636CABB00"];
-
-    
+    CBUUID *uuid = [CBUUID UUIDWithString: kIbbServiceUUID];
     [peripheral discoverServices:@[uuid]];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error {
     for (CBService *service in peripheral.services) {
         NSString *logFormat = @"Discovered service: UUID %@";
-        //NSLog(@"Discovered service %@", service);
         NSLog(logFormat, service.UUID);
-        CBUUID *uuid = [CBUUID UUIDWithString: @"6B872736-F93E-4176-B3B1-143636CABB01"];
-        [peripheral discoverCharacteristics:@[uuid] forService:service];
 
+        //CBUUID *uuid = [CBUUID UUIDWithString: kLedsStatusUUID];
+        [peripheral discoverCharacteristics:nil forService:service];
     }
 }
 
@@ -105,10 +121,29 @@
               characteristic.properties & CBCharacteristicPropertyIndicate
               );
 
-        [self.IbbValues addObject:characteristic];
-        NSLog(@"Start Watching");
-        //[self.cbPeripheral readValueForCharacteristic:characteristic];
-        [self.cbPeripheral setNotifyValue:YES forCharacteristic:characteristic];
+        // store characteristic
+        for (NSString *UUID in self.characteristicsStrings) {
+            if ([characteristic.UUID.data isEqualToData: [CBUUID UUIDWithString:UUID].data]) {
+                NSLog(@"UUID is %@", UUID);
+                [self.discoveredCharasteristics setObject:characteristic forKey:UUID];
+            }
+        }
+
+        // requrest notify: Switches
+        if ([characteristic.UUID.data isEqualToData: [CBUUID UUIDWithString:kSwitchesUUID].data]) {
+            NSLog(@"Start Watching Leds");
+            [self.cbPeripheral setNotifyValue:YES forCharacteristic:characteristic];
+        }
+        // requrest notify: ext switches
+        if ([characteristic.UUID.data isEqualToData: [CBUUID UUIDWithString:kExtSwitchesUUID].data]) {
+            NSLog(@"Start Watching ExtSw");
+            [self.cbPeripheral setNotifyValue:YES forCharacteristic:characteristic];
+        }
+        // requrest notify: Synch
+        if ([characteristic.UUID.data isEqualToData: [CBUUID UUIDWithString:kSynchUUID].data]) {
+            NSLog(@"Start Watching Synch");
+            [self.cbPeripheral setNotifyValue:YES forCharacteristic:characteristic];
+        }
     }
 }
 
@@ -116,7 +151,7 @@
     if (error) {
         NSLog(@"Error changing notification state: %@", [error localizedDescription]);
     }
-    NSLog(@"update Notification State");
+    NSLog(@"update Notification State: %@", characteristic.UUID);
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {

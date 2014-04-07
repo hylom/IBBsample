@@ -17,7 +17,9 @@
 @property (assign) IBOutlet NSWindow *window;
 
 @property (strong, nonatomic) NSMutableArray *devices;
-@property (strong, nonatomic) NSMutableArray *IbbValues;
+@property (strong, nonatomic) NSMutableDictionary *discoveredCharasteristics;
+@property (strong, nonatomic) NSArray *characteristicsStrings;
+
 @property (weak) IBOutlet NSArrayController *deviceListController;
 
 @end
