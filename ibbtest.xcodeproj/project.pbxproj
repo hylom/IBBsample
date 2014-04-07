@@ -18,6 +18,7 @@
 		EF91656A18F156A5003FEE87 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF91654918F156A5003FEE87 /* Cocoa.framework */; };
 		EF91657218F156A5003FEE87 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = EF91657018F156A5003FEE87 /* InfoPlist.strings */; };
 		EF91657418F156A5003FEE87 /* ibbtestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = EF91657318F156A5003FEE87 /* ibbtestTests.m */; };
+		EF91657F18F164E7003FEE87 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF91657D18F159DB003FEE87 /* IOBluetooth.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +51,7 @@
 		EF91656F18F156A5003FEE87 /* ibbtestTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ibbtestTests-Info.plist"; sourceTree = "<group>"; };
 		EF91657118F156A5003FEE87 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		EF91657318F156A5003FEE87 /* ibbtestTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ibbtestTests.m; sourceTree = "<group>"; };
+		EF91657D18F159DB003FEE87 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +59,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EF91657F18F164E7003FEE87 /* IOBluetooth.framework in Frameworks */,
 				EF91654A18F156A5003FEE87 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -95,6 +98,7 @@
 		EF91654818F156A5003FEE87 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				EF91657D18F159DB003FEE87 /* IOBluetooth.framework */,
 				EF91654918F156A5003FEE87 /* Cocoa.framework */,
 				EF91656818F156A5003FEE87 /* XCTest.framework */,
 				EF91654B18F156A5003FEE87 /* Other Frameworks */,
