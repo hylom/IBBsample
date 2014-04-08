@@ -25,8 +25,10 @@ static NSString *const kSynchUUID          = @"6B872736-F93E-4176-B3B1-143636CAB
 static NSString *const kRenameUUID         = @"6B872736-F93E-4176-B3B1-143636CABB08";
 static NSString *const kValidationUUID     = @"6B872736-F93E-4176-B3B1-143636CABB09";
 
-/* Encryption key: 0xf263eeb6a7120550b157216a2efac39c7db776bc */
-
+/* Encryption key: f263eeb6a7120550b157216a2efac39c7db776bc (conside byte order!) */
+//static const NSUInteger kMagicNumbers[] = {0xf263eeb6, 0xa7120550, 0xb157216a, 0x2efac39c, 0x7db776bc};
+static const NSUInteger kMagicNumbers[] = {0xb6ee63f2, 0x500512a7, 0x6a2157b1, 0x9cc3fa2e, 0xbc76b77d};
+static const int kSizeOfMagicNumbers = 5;
 
 @implementation IBBAppDelegate
 
@@ -144,12 +146,19 @@ static NSString *const kValidationUUID     = @"6B872736-F93E-4176-B3B1-143636CAB
             NSLog(@"Start Watching Synch");
             [self.cbPeripheral setNotifyValue:YES forCharacteristic:characteristic];
         }
+        // get validation data
+        if ([characteristic.UUID.data isEqualToData: [CBUUID UUIDWithString:kValidationUUID].data]) {
+            NSLog(@"Get Validation");
+            [self.cbPeripheral readValueForCharacteristic:characteristic];
+        }
+        
     }
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
     if (error) {
         NSLog(@"Error changing notification state: %@", [error localizedDescription]);
+        return;
     }
     NSLog(@"update Notification State: %@", characteristic.UUID);
 }
@@ -157,8 +166,30 @@ static NSString *const kValidationUUID     = @"6B872736-F93E-4176-B3B1-143636CAB
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
     //NSData *data = characteristic.value;
     NSLog(@"UUID: %@ value: %@", characteristic.UUID, characteristic.value);
-    //[self.cbPeripheral readValueForCharacteristic:characteristic];
-    //[self.cbPeripheral writeValue:characteristic.value forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
+
+    if (error) {
+        NSLog(@"Error changing notification state: %@", [error localizedDescription]);
+        return;
+    }
+    
+    // send validation data
+    if ([characteristic.UUID.data isEqualToData: [CBUUID UUIDWithString:kValidationUUID].data]) {
+        NSLog(@"Get Validation Data: %@", characteristic.value);
+        NSLog(@"Send Validation");
+        NSData *data = characteristic.value;
+        NSMutableData *validationValue = [[NSMutableData alloc] initWithLength:10];
+        NSUInteger value;
+        NSUInteger newValue;
+
+        for (int n = 0; n < kSizeOfMagicNumbers; n++) {
+            [data getBytes:&value range:NSMakeRange(n*4, 4)];
+            newValue = value ^ kMagicNumbers[n];
+            [validationValue replaceBytesInRange:NSMakeRange(n*4, 4) withBytes:&newValue];
+        }
+        NSLog(@"Send Validation Data: %@", validationValue);
+        [self.cbPeripheral writeValue:validationValue forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
+        
+    }
 
 }
 
@@ -166,6 +197,7 @@ static NSString *const kValidationUUID     = @"6B872736-F93E-4176-B3B1-143636CAB
     if (error) {
         NSLog(@"Error writing characteristic value: %@",
               [error localizedDescription]);
+        return;
     }
     NSLog(@"write done");
 }
